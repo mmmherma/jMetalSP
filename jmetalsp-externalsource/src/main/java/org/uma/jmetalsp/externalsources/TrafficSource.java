@@ -13,7 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * This class reads New York city "real time" traffic data using a JSON based API.
+ * This class reads New York city "real time" traffic data using a JSON based API. Based on CounterProvider class.
  *
  * @author Marcos Hernández Marcelino
  */
