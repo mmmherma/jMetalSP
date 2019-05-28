@@ -20,13 +20,14 @@ import java.net.URL;
 
 public class TrafficSource {
 
-    private void start(String outputDirectory) {
+    private void start(String outputDirectory, long frequency) {
         System.out.println("start::Init");
 
         String sURL = "https://data.cityofnewyork.us/resource/i4gi-tjb9.json";
         int counter = 0 ;
+        boolean keepRunning = true;
 
-        while (true) {
+        while (keepRunning) {
             try {
                 // Set URL
                 URL url = new URL(sURL);
@@ -85,22 +86,31 @@ public class TrafficSource {
             } catch (ParseException e) {
                 System.out.println(e.toString());
             }
+
+            try {
+                Thread.sleep(frequency);
+            } catch (InterruptedException e) {
+                keepRunning = false;
+                System.out.println("start::Init::Thread sleep interruption");
+            }
         }
     }
 
     public static void main(String[] args) throws Exception {
         System.out.println("TrafficSource::Main");
 
-        if(args.length != 1) {
-            throw new Exception("Invalid number of arguments. Output directory needed.");
+        if(args.length < 2) {
+            throw new Exception("Invalid number of arguments. Output directory and frequency needed.");
         }
 
         // Create output directory
         String directory = args[0];
         createDataDirectory(directory);
+        // Get thread frequency
+        long frequency = Long.parseLong(args[1]);
 
         // Creates an object and call start method
-        new TrafficSource().start(directory);
+        new TrafficSource().start(directory, frequency);
     }
 
     private static void createDataDirectory(String outputDirectoryName) {
