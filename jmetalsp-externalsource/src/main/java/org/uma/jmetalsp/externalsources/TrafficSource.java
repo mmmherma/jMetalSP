@@ -73,21 +73,33 @@ public class TrafficSource {
                     // Write to file
                     FileOutputContext fileOutputContext = new DefaultFileOutputContext(outputDirectory + "/" + counter + "-traffic") ;
                     BufferedWriter bufferedWriter = fileOutputContext.getFileWriter() ;
+                    boolean first = true;
                     for (Object jObject: jData) {
-                        JSONObject j = (JSONObject) jObject;
+                        // Get JSON
+                        JSONObject jLine = (JSONObject) jObject;
 
-                        bufferedWriter.write(j.toString());
+                        if(first) {
+                            bufferedWriter.write(getHeader(jLine) + '\n');
+                            first = false;
+                        }
+
+                        // Store parsed line. From JSON to CSV
+                        bufferedWriter.write(parseJsonToCsv(jLine));
                         bufferedWriter.write('\n');
                     }
 
                     bufferedWriter.close();
 
+                    // Not the first file
                     if(counter > 0) {
+                        // Store current and previous files
                         File previousFile = new File(outputDirectory + "/" + Integer.toString(counter-1) + "-traffic");
                         File currentFile = new File(outputDirectory + "/" + Integer.toString(counter) + "-traffic");
 
+                        // Compare if their contents are equals
                         if(FileUtils.contentEquals(currentFile, previousFile)) {
                             System.out.println("TrafficSource::start::Same file then remove current file");
+                            // Remove duplicated
                             FileUtils.forceDelete(currentFile);
                         } else {
                             System.out.println("TrafficSource::start::Different files then store");
@@ -117,21 +129,30 @@ public class TrafficSource {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println("TrafficSource::Main");
+    private String parseJsonToCsv(JSONObject line) {
+        // Parsed line
+        String parsedLine = "";
 
-        if(args.length < 2) {
-            throw new Exception("Invalid number of arguments. Output directory and frequency needed.");
+        // Iterate over JSON line and create CSV line
+        for(Object key : line.keySet()) {
+            parsedLine += "\"" + line.get(key).toString() + "\"" + ",";
         }
 
-        // Create output directory
-        String directory = args[0];
-        createDataDirectory(directory);
-        // Get thread frequency
-        long frequency = Long.parseLong(args[1]);
+        // Return parsed line
+        return parsedLine.substring(0, parsedLine.length()-1);
+    }
 
-        // Creates an object and call start method
-        new TrafficSource().start(directory, frequency);
+    private String getHeader(JSONObject line) {
+        // Parsed line
+        String headerLine = "";
+
+        // Iterate over JSON line and create CSV line
+        for(Object key : line.keySet()) {
+            headerLine += "\"" + key.toString() + "\"" + ",";
+        }
+
+        // Return parsed line
+        return headerLine.substring(0, headerLine.length()-1);
     }
 
     private static void createDataDirectory(String outputDirectoryName) {
@@ -148,6 +169,23 @@ public class TrafficSource {
         }
 
         new File(outputDirectoryName).mkdir();
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println("TrafficSource::Main");
+
+        if(args.length < 2) {
+            throw new Exception("Invalid number of arguments. Output directory and frequency needed.");
+        }
+
+        // Create output directory
+        String directory = args[0];
+        createDataDirectory(directory);
+        // Get thread frequency
+        long frequency = Long.parseLong(args[1]);
+
+        // Creates an object and call start method
+        new TrafficSource().start(directory, frequency);
     }
 
 }
