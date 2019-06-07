@@ -1,5 +1,6 @@
 package org.uma.jmetalsp.externalsources;
 
+import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,13 +16,19 @@ import java.net.URL;
 /**
  * This class reads New York city "real time" traffic data using a JSON based API. Based on CounterProvider class.
  *
+ * Execution:
+ *
+ *      cd path/to/jMetalSP
+ *      java -cp jmetalsp-externalsource/target/jmetalsp-externalsource-2.1-SNAPSHOT-jar-with-dependencies.jar \
+ *          org.uma.jmetalsp.externalsources.TrafficSource outputTraffic 60
+ *
  * @author Marcos Hernández Marcelino
  */
 
 public class TrafficSource {
 
     private void start(String outputDirectory, long frequency) {
-        System.out.println("start::Init");
+        System.out.println("TrafficSource::start::Init parameters " + outputDirectory + " " + Long.toString(frequency));
 
         String sURL = "https://data.cityofnewyork.us/resource/i4gi-tjb9.json";
         int counter = 0 ;
@@ -42,7 +49,7 @@ public class TrafficSource {
 
                 // Get response type
                 int errorCode = connection.getResponseCode();
-                System.out.println("start::Got new data...");
+                System.out.println("TrafficSource::start::Got new data...");
 
                 if(errorCode == 200) {
                     // Get response
@@ -64,7 +71,7 @@ public class TrafficSource {
                     JSONArray jData = (JSONArray) jParser.parse(lineBuffer.toString());
 
                     // Write to file
-                    FileOutputContext fileOutputContext = new DefaultFileOutputContext(outputDirectory + "/time." + counter) ;
+                    FileOutputContext fileOutputContext = new DefaultFileOutputContext(outputDirectory + "/" + counter + "-traffic") ;
                     BufferedWriter bufferedWriter = fileOutputContext.getFileWriter() ;
                     for (Object jObject: jData) {
                         JSONObject j = (JSONObject) jObject;
@@ -75,9 +82,23 @@ public class TrafficSource {
 
                     bufferedWriter.close();
 
-                    counter++;
+                    if(counter > 0) {
+                        File previousFile = new File(outputDirectory + "/" + Integer.toString(counter-1) + "-traffic");
+                        File currentFile = new File(outputDirectory + "/" + Integer.toString(counter) + "-traffic");
+
+                        if(FileUtils.contentEquals(currentFile, previousFile)) {
+                            System.out.println("TrafficSource::start::Same file then remove current file");
+                            FileUtils.forceDelete(currentFile);
+                        } else {
+                            System.out.println("TrafficSource::start::Different files then store");
+                            counter++;
+                        }
+                    } else {
+                        System.out.println("TrafficSource::start::First file");
+                        counter++;
+                    }
                 } else {
-                    System.out.println("start::Wrong HTTP response");
+                    System.out.println("TrafficSource::start::Wrong HTTP response");
                 }
             } catch (MalformedURLException e) {
                 System.out.println(e.toString());
@@ -88,10 +109,10 @@ public class TrafficSource {
             }
 
             try {
-                Thread.sleep(frequency);
+                Thread.sleep(frequency * 1000);
             } catch (InterruptedException e) {
                 keepRunning = false;
-                System.out.println("start::Init::Thread sleep interruption");
+                System.out.println("TrafficSource::start::Thread sleep interruption");
             }
         }
     }
