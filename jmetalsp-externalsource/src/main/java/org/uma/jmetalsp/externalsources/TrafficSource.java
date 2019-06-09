@@ -73,10 +73,12 @@ public class TrafficSource {
                     bufferedWriter.write(lineBuffer.toString());
                     bufferedWriter.close();
 
+                    counter++;
+
                     // Check if new file is duplicated
-                    if(!deleteDuplicated(counter, outputDirectory)) {
-                        counter++;
-                    }
+                    //if(!deleteDuplicated(counter, outputDirectory)) {
+                    //    counter++;
+                    //}
                 } else {
                     System.out.println("TrafficSource::startCsv::Wrong HTTP response");
                 }
