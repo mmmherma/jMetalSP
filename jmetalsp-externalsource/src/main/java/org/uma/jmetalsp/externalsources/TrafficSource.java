@@ -61,6 +61,7 @@ public class TrafficSource {
                     StringBuffer lineBuffer = new StringBuffer();
                     while ((line = requestResponse.readLine()) != null) {
                         lineBuffer.append(line);
+                        lineBuffer.append('\n');
                     }
 
                     // Close StringBuffer
@@ -127,6 +128,7 @@ public class TrafficSource {
                     String line;
                     StringBuffer lineBuffer = new StringBuffer();
                     while ((line = requestResponse.readLine()) != null) {
+                        System.out.println("here");
                         lineBuffer.append(line);
                     }
 
@@ -233,7 +235,7 @@ public class TrafficSource {
         long frequency = Long.parseLong(args[1]);
 
         // Creates an object and call start method
-        if(args[2] == "json") {
+        if(args[2].equals("json")) {
             new TrafficSource().startJson(directory, frequency);
         } else {
             new TrafficSource().startCsv(directory, frequency);
