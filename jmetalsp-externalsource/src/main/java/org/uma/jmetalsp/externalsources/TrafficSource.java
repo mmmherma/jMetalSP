@@ -128,7 +128,6 @@ public class TrafficSource {
                     String line;
                     StringBuffer lineBuffer = new StringBuffer();
                     while ((line = requestResponse.readLine()) != null) {
-                        System.out.println("here");
                         lineBuffer.append(line);
                     }
 
